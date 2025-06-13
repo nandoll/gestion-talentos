@@ -1,0 +1,21 @@
+# Ignora las dependencias para asegurar una instalación limpia dentro de Docker.
+node_modules
+
+# Ignora los artefactos de compilación.
+dist
+tmp
+
+# Ignora el caché de Nx.
+.nx/cache
+
+# Ignora archivos de sistema operativo y logs.
+.DS_Store
+*.log
+
+# No incluyas variables de entorno locales en la imagen.
+.env
+.env.*
+
+# Ignora los directorios de IDEs
+.idea
+.vscode

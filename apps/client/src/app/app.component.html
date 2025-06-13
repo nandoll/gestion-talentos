@@ -1,0 +1,21 @@
+<mat-toolbar color="primary" class="app-toolbar">
+  <mat-toolbar-row>
+    <div class="toolbar-content">
+      <div class="toolbar-left">
+        <mat-icon>business_center</mat-icon>
+        <span class="app-title">{{title}}</span>
+      </div>
+      <div class="toolbar-right">
+        <button mat-icon-button aria-label="GitHub">
+          <mat-icon>code</mat-icon>
+        </button>
+      </div>
+    </div>
+  </mat-toolbar-row>
+</mat-toolbar>
+
+<main class="main-content">
+  <div class="container">
+    <router-outlet></router-outlet>
+  </div>
+</main>

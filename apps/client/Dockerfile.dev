@@ -1,0 +1,22 @@
+FROM node:22-alpine
+
+WORKDIR /usr/src/app
+
+# Instala pnpm globalmente
+RUN npm install -g pnpm
+
+# Copia archivos de configuración de dependencias
+COPY package.json pnpm-lock.yaml .npmrc ./
+COPY tsconfig.base.json nx.json ./
+
+# Instala dependencias
+RUN pnpm install --frozen-lockfile
+
+# Añadimos el directorio de binarios de node_modules al PATH.
+ENV PATH /usr/src/app/node_modules/.bin:$PATH
+
+# Expone el puerto del servidor de desarrollo de Angular
+EXPOSE 4200
+
+# El código completo se montará a través de un volumen para hot-reloading
+# El comando de inicio se especifica en docker-compose.dev.yml

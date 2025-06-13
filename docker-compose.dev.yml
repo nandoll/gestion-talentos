@@ -1,0 +1,68 @@
+# docker-compose.dev.yml
+# Orquesta los servicios para un entorno de DESARROLLO con hot-reloading.
+
+services:
+  # Servicio de la Base de Datos (idéntico al de producción)
+  db:
+    image: postgres:15-alpine
+    container_name: talent-db-dev
+    restart: always
+    ports:
+      - '5432:5432'
+    env_file:
+      - ./.env.db
+    volumes:
+      - talent-db-data-dev:/var/lib/postgresql/data
+    networks:
+      - talent-network-dev
+
+  # Servicio del Backend de Desarrollo
+  api:
+    container_name: talent-api-dev
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.dev
+    # Script de inicio para desarrollo usando npx para acceder a nx
+    command: sh -c "npx nx serve api --configuration=development"
+    ports:
+      - '3000:3000'
+      - '5555:5555' # Puerto para Prisma Studio
+    env_file:
+      - ./.env.dev
+    environment:
+      # Asegurar que la DATABASE_URL esté disponible
+      DATABASE_URL: "postgresql://admin:mysecretpassword@db:5432/talentdb?schema=public"
+    volumes:
+      # Monta todo el proyecto, excepto node_modules, para hot-reloading
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - talent-network-dev
+    depends_on:
+      - db
+
+  # Servicio del Frontend de Desarrollo
+  client:
+    container_name: talent-client-dev
+    build:
+      context: .
+      dockerfile: apps/client/Dockerfile.dev
+    # Comando para iniciar el servidor de desarrollo de Angular usando npx
+    # --host 0.0.0.0 es CRUCIAL para que sea accesible desde fuera del contenedor.
+    command: sh -c "npx nx serve client --host 0.0.0.0 --port 4200"
+    ports:
+      - '4200:4200'
+    volumes:
+      # Monta todo el proyecto, excepto node_modules, para hot-reloading
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - talent-network-dev
+
+networks:
+  talent-network-dev:
+    driver: bridge
+
+volumes:
+  talent-db-data-dev:
+    driver: local

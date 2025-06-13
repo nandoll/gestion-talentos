@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Servicio de la Base de Datos PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: talent-db
+    restart: always
+    ports:
+      - '5432:5432' # Expone el puerto de la BD al host (solo para debugging, opcional)
+    env_file:
+      - ./.env.db # Carga las credenciales desde un archivo .env
+    volumes:
+      - talent-db-data:/var/lib/postgresql/data # Persiste los datos de la BD
+    networks:
+      - talent-network
+
+  # Servicio del Backend NestJS API
+  api:
+    container_name: talent-api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile # Ruta al Dockerfile de la API
+    restart: always
+    depends_on:
+      - db # Se asegura de que la BD inicie primero
+    ports:
+      - '3000:3000' # Expone el puerto de la API
+    env_file:
+      - ./.env.dev
+    networks:
+      - talent-network
+
+  # Servicio de Proxy Inverso Nginx que sirve el Frontend de Angular
+  proxy:
+    container_name: talent-proxy
+    build:
+      context: .
+      dockerfile: proxy/Dockerfile # Ruta al Dockerfile del proxy/frontend
+    restart: always
+    ports:
+      - '8080:80' # Expone el puerto 80 al exterior (HTTP)
+    depends_on:
+      - api # Se asegura de que la API inicie primero
+    networks:
+      - talent-network
+
+# Red para la comunicación interna entre los contenedores
+networks:
+  talent-network:
+    driver: bridge
+
+# Volumen para la persistencia de datos de la base de datos
+volumes:
+  talent-db-data:
+    driver: local

@@ -1,0 +1,493 @@
+{
+  "graph": {
+    "nodes": {
+      "client": {
+        "name": "client",
+        "type": "app",
+        "data": {
+          "root": "apps/client",
+          "targets": {
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "apps/client",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/eslint.config.mjs",
+                "{projectRoot}/eslint.config.mjs",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "executor": "@angular-devkit/build-angular:application",
+              "outputs": ["{options.outputPath}"],
+              "options": {
+                "outputPath": "dist/apps/client",
+                "index": "apps/client/src/index.html",
+                "browser": "apps/client/src/main.ts",
+                "polyfills": ["zone.js"],
+                "tsConfig": "apps/client/tsconfig.app.json",
+                "inlineStyleLanguage": "scss",
+                "assets": [
+                  {
+                    "glob": "**/*",
+                    "input": "apps/client/public"
+                  }
+                ],
+                "styles": ["apps/client/src/styles.scss"],
+                "scripts": []
+              },
+              "configurations": {
+                "production": {
+                  "budgets": [
+                    {
+                      "type": "initial",
+                      "maximumWarning": "500kb",
+                      "maximumError": "1mb"
+                    },
+                    {
+                      "type": "anyComponentStyle",
+                      "maximumWarning": "4kb",
+                      "maximumError": "8kb"
+                    }
+                  ],
+                  "outputHashing": "all"
+                },
+                "development": {
+                  "optimization": false,
+                  "extractLicenses": false,
+                  "sourceMap": true
+                }
+              },
+              "defaultConfiguration": "production",
+              "parallelism": true,
+              "cache": true,
+              "dependsOn": ["^build"],
+              "inputs": ["production", "^production"]
+            },
+            "serve": {
+              "continuous": true,
+              "executor": "@angular-devkit/build-angular:dev-server",
+              "options": {
+                "proxyConfig": "apps/client/proxy.conf.json"
+              },
+              "configurations": {
+                "production": {
+                  "buildTarget": "client:build:production"
+                },
+                "development": {
+                  "buildTarget": "client:build:development"
+                }
+              },
+              "defaultConfiguration": "development",
+              "parallelism": true
+            },
+            "extract-i18n": {
+              "executor": "@angular-devkit/build-angular:extract-i18n",
+              "options": {
+                "buildTarget": "client:build"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lint": {
+              "executor": "@nx/eslint:lint",
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "cache": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.mjs"
+              ]
+            },
+            "serve-static": {
+              "continuous": true,
+              "executor": "@nx/web:file-server",
+              "options": {
+                "buildTarget": "client:build",
+                "staticFilePath": "dist/apps/client/browser",
+                "spa": true
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "client",
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "prefix": "app",
+          "sourceRoot": "apps/client/src",
+          "tags": [],
+          "implicitDependencies": []
+        }
+      },
+      "api": {
+        "name": "api",
+        "type": "app",
+        "data": {
+          "root": "apps/api",
+          "projectType": "application",
+          "metadata": {
+            "targetGroups": {
+              "NPM Scripts": [
+                "start",
+                "start:dev",
+                "start:debug",
+                "start:prod",
+                "prisma:generate",
+                "db:migrate",
+                "db:deploy",
+                "db:reset",
+                "db:studio",
+                "prisma:seed",
+                "test",
+                "test:watch",
+                "test:cov",
+                "test:e2e"
+              ]
+            },
+            "description": "Backend API para gestión de candidatos",
+            "js": {
+              "packageName": "@gestion-talentos/api",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "targets": {
+            "build": {
+              "executor": "@nx/webpack:webpack",
+              "outputs": ["{options.outputPath}"],
+              "defaultConfiguration": "production",
+              "options": {
+                "target": "node",
+                "compiler": "tsc",
+                "outputPath": "dist/apps/api",
+                "main": "apps/api/src/main.ts",
+                "tsConfig": "apps/api/tsconfig.app.json",
+                "assets": ["apps/api/src/assets"],
+                "webpackConfig": "apps/api/webpack.config.js"
+              },
+              "configurations": {
+                "development": {
+                  "generatePackageJson": false
+                },
+                "production": {
+                  "generatePackageJson": true
+                }
+              },
+              "parallelism": true
+            },
+            "serve": {
+              "executor": "@nx/js:node",
+              "defaultConfiguration": "development",
+              "options": {
+                "buildTarget": "api:build"
+              },
+              "configurations": {
+                "development": {
+                  "buildTarget": "api:build:development"
+                },
+                "production": {
+                  "buildTarget": "api:build:production"
+                }
+              },
+              "parallelism": true
+            },
+            "preview": {
+              "continuous": true,
+              "options": {
+                "cwd": "apps/api",
+                "args": ["--node-env=production"],
+                "command": "webpack-cli serve"
+              },
+              "metadata": {
+                "technologies": ["webpack"],
+                "description": "Starts Webpack dev server in production mode",
+                "help": {
+                  "command": "pnpm exec webpack-cli serve --help",
+                  "example": {
+                    "options": {
+                      "args": ["--client-progress", "--history-api-fallback "]
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve-static": {
+              "continuous": true,
+              "dependsOn": ["build"],
+              "executor": "@nx/web:file-server",
+              "options": {
+                "buildTarget": "build",
+                "spa": true
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": ["^build"],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": ["build-deps"],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects api --includeDependentProjects -- pnpm exec nx build-deps api"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "eslint:lint": {
+              "cache": true,
+              "options": {
+                "cwd": "apps/api",
+                "command": "eslint ."
+              },
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/eslint.config.mjs",
+                "{projectRoot}/eslint.config.mjs",
+                "{workspaceRoot}/tools/eslint-rules/**/*",
+                {
+                  "externalDependencies": ["eslint"]
+                }
+              ],
+              "outputs": ["{options.outputFile}"],
+              "metadata": {
+                "technologies": ["eslint"],
+                "description": "Runs ESLint on project",
+                "help": {
+                  "command": "pnpm exec eslint --help",
+                  "example": {
+                    "options": {
+                      "max-warnings": 0
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "configurations": {},
+              "parallelism": true
+            },
+            "start": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "start"
+              },
+              "metadata": {
+                "scriptContent": "nest start",
+                "runCommand": "pnpm run start"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "start:dev": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "start:dev"
+              },
+              "metadata": {
+                "scriptContent": "nest start --watch",
+                "runCommand": "pnpm run start:dev"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "start:debug": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "start:debug"
+              },
+              "metadata": {
+                "scriptContent": "nest start --debug --watch",
+                "runCommand": "pnpm run start:debug"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "start:prod": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "start:prod"
+              },
+              "metadata": {
+                "scriptContent": "node dist/apps/api/main",
+                "runCommand": "pnpm run start:prod"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "prisma:generate": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "prisma:generate"
+              },
+              "metadata": {
+                "scriptContent": "pnpm exec prisma generate",
+                "runCommand": "pnpm run prisma:generate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "db:migrate": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "db:migrate"
+              },
+              "metadata": {
+                "scriptContent": "pnpm exec prisma migrate dev",
+                "runCommand": "pnpm run db:migrate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "db:deploy": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "db:deploy"
+              },
+              "metadata": {
+                "scriptContent": "pnpm exec prisma migrate deploy",
+                "runCommand": "pnpm run db:deploy"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "db:reset": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "db:reset"
+              },
+              "metadata": {
+                "scriptContent": "pnpm exec prisma migrate reset",
+                "runCommand": "pnpm run db:reset"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "db:studio": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "db:studio"
+              },
+              "metadata": {
+                "scriptContent": "pnpm exec prisma studio",
+                "runCommand": "pnpm run db:studio"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "prisma:seed": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "prisma:seed"
+              },
+              "metadata": {
+                "scriptContent": "pnpm exec ts-node prisma/seed.ts",
+                "runCommand": "pnpm run prisma:seed"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "test"
+              },
+              "metadata": {
+                "scriptContent": "jest",
+                "runCommand": "pnpm run test"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:watch": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "test:watch"
+              },
+              "metadata": {
+                "scriptContent": "jest --watch",
+                "runCommand": "pnpm run test:watch"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:cov": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "test:cov"
+              },
+              "metadata": {
+                "scriptContent": "jest --coverage",
+                "runCommand": "pnpm run test:cov"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test:e2e": {
+              "executor": "nx:run-script",
+              "options": {
+                "script": "test:e2e"
+              },
+              "metadata": {
+                "scriptContent": "jest --config ./test/jest-e2e.json",
+                "runCommand": "pnpm run test:e2e"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "nx-release-publish": {
+              "executor": "@nx/js:release-publish",
+              "dependsOn": ["^nx-release-publish"],
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "api",
+          "tags": ["npm:public"],
+          "$schema": "../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/api/src",
+          "implicitDependencies": []
+        }
+      }
+    },
+    "dependencies": {
+      "client": [],
+      "api": []
+    }
+  }
+}

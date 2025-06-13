@@ -1,0 +1,38 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// apps/api/prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum para el nivel de experiencia del candidato
+enum Seniority {
+  junior
+  senior
+}
+
+// Modelo principal para almacenar candidatos
+model Candidate {
+  id               String      @id @default(cuid())
+  name             String      // Nombre del candidato
+  surname          String      // Apellido del candidato
+  seniority        Seniority   // Nivel de experiencia (junior/senior)
+  yearsExperience  Int         // Años de experiencia
+  availability     Boolean     // Disponibilidad actual
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  // Índices para optimizar búsquedas comunes
+  @@index([name, surname])
+  @@index([seniority])
+  @@index([availability])
+}
