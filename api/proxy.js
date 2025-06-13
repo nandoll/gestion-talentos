@@ -10,8 +10,9 @@ export default async function handler(req, res) {
 
   // Construir la URL destino manteniendo query parameters
   const { url, method, headers, body } = req;
-  const path = url.replace('/api/proxy', '');
-  const targetUrl = `${API_URL}${path}`;
+  // Extraer el path después de /api/ (sin incluir /api)
+  const path = url.replace('/api', '');
+  const targetUrl = `${API_URL}/api${path}`;
 
   try {
     // Preparar headers para el backend
@@ -34,7 +35,13 @@ export default async function handler(req, res) {
 
     // Agregar body si existe (para POST, PUT, PATCH)
     if (body && method !== 'GET' && method !== 'HEAD') {
-      fetchOptions.body = body;
+      // Si el content-type es JSON, asegurarse de convertir el body a string
+      if (headers['content-type']?.includes('application/json')) {
+        fetchOptions.body = typeof body === 'string' ? body : JSON.stringify(body);
+      } else {
+        // Para otros tipos (como FormData), mantener el body como está
+        fetchOptions.body = body;
+      }
     }
 
     // Hacer la petición al backend
